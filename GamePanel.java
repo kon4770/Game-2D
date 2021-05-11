@@ -17,7 +17,8 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
 	private Map map;
 	private Player pl;
 	private Lazer lazer;
-	private HashSet<Enemy> enemy = new HashSet<>();
+	private EnemyManagment e_managment;
+	private EndNode end_node;
 	private int mode = 3;
 	private int edge_n = 3;
 	private Timer timer = new Timer(16, this);
@@ -31,27 +32,24 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
 		setFocusTraversalKeysEnabled(false);
 		this.setBackground(Color.darkGray);
 		timer.setDelay(1000);
-		timer.start();
 		map = new Map(edge_n, 20, 40);
-		lazer = new Lazer(map.getAllMoves(), 20, 40);
-		System.out.println("cos " + map.getStart() + " aa " + map.getStart() / 40 + " " + map.getStart() % 40);
+		lazer = new Lazer(map.getAllMoves(), 2, 20, 40);
 		pl = new Player(20, 40, map.getStart());
-		for (int i = 0; i < edge_n; i++) { 
-			enemy.add(new Enemy(map.getAllMoves(), 20, 40, map.getStart()));
-		}
-		EnemyManagment m = new EnemyManagment(map.getAllMoves(),edge_n, 20,40);
+		e_managment = new EnemyManagment(map.getAllMoves(), map.getStart(), edge_n, 20, 40);
+		end_node = new EndNode(map.getAllMoves().keySet(), 20, 40);
+		timer.start();
 	}
 
 	public void reset(int nMode) {
+		timer.stop();
 		mode = 3;
 		map = new Map(nMode, 20, 40);
-		lazer = new Lazer(map.getAllMoves(), 20, 40);
+		lazer = new Lazer(map.getAllMoves(), 2, 20, 40);
 		System.out.println("cos " + map.getStart() / 40 + map.getStart() % 40);
 		pl = new Player(20, 40, map.getStart());
-		enemy.clear();
-		for (int i = 0; i < edge_n; i++) { 
-			enemy.add(new Enemy(map.getAllMoves(), 20, 40, map.getStart()));
-		}
+		e_managment = new EnemyManagment(map.getAllMoves(), map.getStart(), edge_n, 20,40);
+		end_node = new EndNode(map.getAllMoves().keySet(), 20, 40);
+		timer.start();
 	}
 
 	public void paintComponent(Graphics g) {
@@ -67,9 +65,8 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
 		pl.draw(g);
 		map.draw(g);
 		lazer.draw(g);
-		enemy.forEach(e -> {
-			e.draw(g);
-		});
+		e_managment.draw(g);
+		end_node.draw(g);
 	}
 
 	private void paintState(Graphics2D g) {
@@ -90,6 +87,8 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
 			timer.setDelay(4);
 			map.setPermission(true);
 			pl.setPermission(true);
+			lazer.setPermission(true);
+			end_node.setPermission(true);
 			System.out.println(mode--);
 		}
 	}
@@ -97,25 +96,31 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		HashSet<Integer> pos_codes = map.getPossibleMoves(pl.getPlaceIndex());
+		lazer.setCoor(pl.getX(), pl.getY(), pl.getAngle());
+		if(end_node.isThisEnd(pl.getPlaceIndex())) {
+			reset(++edge_n);
+		}
 		if (key[0]) {
 			pl.move(1, pos_codes);
+			e_managment.move(pl.getX(), pl.getY());
 		}
 		if (key[1]) {
 			pl.rotate(-2, pos_codes);
 		}
 		if (key[2]) {
 			pl.move(-1, pos_codes);
+			e_managment.move(pl.getX(), pl.getY());
 		}
 		if (key[3]) {
 			pl.rotate(2, pos_codes);
 		}
 		if (key[4]) {
-			lazer.setCoor(pl.getX(), pl.getY(), pl.getAngle());
 			lazer.shoot();
-			lazer.setPermission(true);
-			enemy.forEach(en -> {
-				en.start(pl.getX(), pl.getY());
-			});
+			lazer.setPermissionForLazer(true);
+		}
+		if(e_managment.willItKill(pl.getX(), pl.getY())) {
+			reset(edge_n);
+			next_game = true;
 		}
 		repaint();
 	}
@@ -139,7 +144,7 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
 			key[4] = true;
 		}
 		if (e.getKeyCode() == KeyEvent.VK_R) {
-			reset(++edge_n);
+			reset(edge_n);
 			next_game = true;
 		}
 	}
@@ -156,6 +161,8 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
 			key[3] = false;
 		} else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 			key[4] = false;
+			lazer.setPermissionForLazer(false);
+			e_managment.killIfHit(lazer.getLazerPath()[0], lazer.getLazerPath()[1]);
 		}
 	}
 

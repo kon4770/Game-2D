@@ -107,7 +107,6 @@ public class Map {
 			if (visible_edges[3]) {
 				edges.add(new Edge(con_Ni+n_block+1,con_Ni+2+n_block, 0));
 			}
-
 		}
 		return edges;
 	}
@@ -233,8 +232,8 @@ public class Map {
 	public void draw(Graphics g) {
 		if(can_paint) {
 			Graphics2D gn = (Graphics2D) g;
-			gn.setColor(Color.green);
-			gn.drawPolygon(shape_lx, shape_ly, shape_n);
+			//gn.setColor(Color.green);
+			//gn.drawPolygon(shape_lx, shape_ly, shape_n);
 			for (Edge l : all_visible) {
 				int x1 = l.getA() / (n_block+1) * width + correction;
 				int x2 = l.getB() / (n_block+1) * width + correction;
@@ -244,42 +243,6 @@ public class Map {
 				gn.drawLine(x1, y1, x2, y2);
 			}
 		}
-		
-		/*
-		for (Integer cur : graph.keySet()) {
-			// System.out.println("size " + graph.get(cur).getEdges().size());
-			for (Edge l : graph.get(cur).getEdges()) {
-				int x1 = l.getA() / n_block * width + correction+10;
-				int x2 = l.getB() / n_block * width + correction+10;
-				int y1 = l.getA() % n_block * width + correction+10;
-				int y2 = l.getB() % n_block * width + correction+10;
-				gn.setColor(Color.GREEN);
-				gn.drawLine(x1, y1, x2, y2);
-				
-
-			}
-		}
-		for (Integer cur : moves.keySet()) {
-			// System.out.println("size " + graph.get(cur).getEdges().size());
-			if (moves.get(cur).getEdges().size() == 1) {
-				gn.setColor(Color.GREEN);
-				// System.out.println("AAAAAAA " + (graph.get(cur).getX()*20+100) + " " +
-				// (graph.get(cur).getY()*20+100));
-				gn.drawOval(moves.get(cur).getX() * width + correction, moves.get(cur).getY() * width + correction, 5, 5);
-			}
-			for (Edge l : moves.get(cur).getEdges()) {
-				int x1 = l.getA() / n_block * width + correction+10;
-				int x2 = l.getB() / n_block * width + correction+10;
-				int y1 = l.getA() % n_block * width + correction+10;
-				int y2 = l.getB() % n_block * width + correction+10;
-				gn.setColor(Color.red);
-				gn.drawLine(x1, y1, x2, y2);
-				gn.fillOval(x2,y2,3,3);
-			}
-		}
-		
-		//System.out.println(all_visible);
-		*/
 	}
 
 }
